@@ -1,0 +1,32 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <script type="text/javascript" src="js/jquery.js"></script>
+    <script type="text/javascript" src="js/jquery.FastEllipsis.js"></script>
+  </head>
+  <body>
+    
+    <script type="text/javascript">
+      $(function() {
+
+        var myEllipsis = new FastEllipsis("font-family: arial; font-size: 10pt; letter-spacing: 0;");
+        var longText = "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum";
+        var ellipsed = myEllipsis.ellipseIt(
+          longText, // string to ellipsis
+          2,        // maxline number 
+          200       // width of container
+        );
+        $("#containterA").html(longText);
+        $("#containterB").html(ellipsed);
+      });
+    </script>
+    
+    <p>Full text:</p>
+    <div id="containterA" style="background:#ddd; width:200px;font-family:arial;font-size:10pt;letter-spacing:0;"></div>
+    
+    <p>Ellipsised:</p>
+    <div id="containterB" style="background:#ddd; width:200px;font-family:arial;font-size:10pt;letter-spacing:0;"></div>
+    
+  </body>
+</html>
