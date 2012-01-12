@@ -16,17 +16,23 @@
   );
   $("#containter").html(ellipsed);
 
+
+  TODO:
+    - support entities
+    - solve unicode chars widths in better way
+    - if even first word dont fits - cut the word
+    - add local storage for cache if avail
+    - words with dash wraps to next line, here it is not
 */
 
-var FastEllipsis = function (cssStyle) {
+
+function FastEllipsis(cssStyle) {
   var _charWidthArray = {},
-      _cssStyle = (!!cssStyle) ? cssStyle : "font-family:arial;font-size:12pt",
+      _cssStyle = (!!cssStyle) ? cssStyle : "font-family: arial; font-size: 12pt; letter-spacing: 0;",
       _maxWidth = 0;
 			
-  generateASCIIwidth();
-			
   // Generate cache for width of all ASCII chars 
-  function generateASCIIwidth() {
+  var generateASCIIwidth = function() {
     var container, obj, character;
 				
     // Temporary container for generated ASCII chars
@@ -53,10 +59,10 @@ var FastEllipsis = function (cssStyle) {
 				
     // Remove temporary container   
     container.remove();
-  };
+  },
 			
   // Get the width of specified char
-  function getCharWidth(myChar) {
+  getCharWidth = function (myChar) {
         
     // If there is a char in cache
     if (!!_charWidthArray["_"+myChar]) {
@@ -69,10 +75,10 @@ var FastEllipsis = function (cssStyle) {
       return _maxWidth;
     }
         
-  };
+  },
 			
   // Get the width of the word
-  function getWordWidth(myWord) {
+  getWordWidth = function(myWord) {
         
     // Check if this word is already cached
     if (!!_charWidthArray["_"+myWord]) {
@@ -89,23 +95,23 @@ var FastEllipsis = function (cssStyle) {
       return sum;
     }
         
-  };
+  },
       
   // Ellipse text based on CSS styling set in constructor.
-  function ellipseIt(myString, maxLine, lineWidth) {
+  ellipseIt = function(myString, maxLine, lineWidth) {
     var lineNo = 1,
         wordsInLineWidth = 0,
-        wordArr = myString.split(" "),
+        wordArr = myString.trim().strip_tags().split(/\s+/g), // trim string, remove HTML tags, remove space duplicates
         spaceWidth = getCharWidth(" "),
         threeDotsWidth = getWordWidth("...");
 
     for (var i = 0, len = wordArr.length; i < len; i++) {
 
       // Adding widths of words in the loop
-      wordsInLineWidth += getWordWidth(wordArr[i]) + spaceWidth;
+      wordsInLineWidth += getWordWidth(wordArr[i]);
 
       // Check if the total width of words calculated so far is larger than width of container passed in the parameter
-      if (wordsInLineWidth >= lineWidth) {
+      if (wordsInLineWidth > lineWidth) {
 
         // If yes, go to next line and reset the words width
         lineNo++;
@@ -124,6 +130,10 @@ var FastEllipsis = function (cssStyle) {
         // If the words width was bigger than line width go back in the loop to take last word for use in the beggining of next line
         i--;
       }
+      else {
+        // Adding width of space between words
+        wordsInLineWidth += spaceWidth;
+      }
     }
 
     // If there was no need to ellipsis
@@ -131,10 +141,26 @@ var FastEllipsis = function (cssStyle) {
         
   };
   
+  generateASCIIwidth();
+  
   // Public interface
   return {
     getCharWidth: getCharWidth,
     getWordWidth: getWordWidth,
     ellipseIt: ellipseIt
   }
-}
+};
+
+// Add string functions to String prototype
+
+if (typeof String.prototype.trim !== "function") {
+  String.prototype.trim = function () {
+      return this.replace(/^\s*/, "").replace(/\s*$/, "");
+  };
+};
+
+if (typeof String.prototype.strip_tags !== "function") {
+  String.prototype.strip_tags = function() {
+    return this.replace(/<\/?[^>]+(>|$)/g, "");
+  };
+};
