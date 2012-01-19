@@ -2,31 +2,68 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <script type="text/javascript" src="js/jquery.js"></script>
+    <script type="text/javascript" src="http://code.jquery.com/jquery.min.js"></script>
     <script type="text/javascript" src="js/jquery.FastEllipsis.js"></script>
+	<style type="text/css">
+		div {
+			padding:5px;
+			margin-bottom:10px;
+			margin-left:5px;
+			text-align:justify;
+		}
+	</style>
   </head>
   <body>
     
     <script type="text/javascript">
       $(function() {
 
-        var myEllipsis = new FastEllipsis("font-family: arial; font-size: 10pt; letter-spacing: 0;");
-        var longText = "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum";
-        var ellipsed = myEllipsis.ellipseIt(
-          longText, // string to ellipsis
-          2,        // maxline number 
-          200       // width of container
-        );
+        function randOrd() {return (Math.round(Math.random())-0.5); }
+
+		function getRandomText() {
+			return ("Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum").split(" ").sort( randOrd ).join(" ");
+		}
+		
+		
+        var myEllipsis = new FastEllipsis("font-family: arial; font-size: 16px; letter-spacing: 0px;");
+        
+		var longText = getRandomText();
         $("#containterA").html(longText);
-        $("#containterB").html(ellipsed);
-      });
+		
+		var ellipsed;
+		for (var i = 0, max = 1000; i < max; i++) {
+			ellipsed = myEllipsis.ellipseIt(
+			  getRandomText(), // string to ellipsis
+			  5,        // maxline number 
+			  320       // width of container
+			);
+			$("<div style='background:#fcd; width:320px;font-family:arial;font-size:16px;letter-spacing:0;'></div>").appendTo("#conteinerB").html(ellipsed);
+		}
+
+		for (var i = 0, max = 1000; i < max; i++) {
+			ellipsed = myEllipsis.ellipseIt(
+			  getRandomText(), // string to ellipsis
+			  3,        // maxline number 
+			  450       // width of container
+			);
+			$("<div style='background:#dcf; width:450px;font-family:arial;font-size:16px;letter-spacing:0;'></div>").appendTo("#conteinerC").html(ellipsed);
+		}
+	});
     </script>
     
-    <p>Full text:</p>
-    <div id="containterA" style="background:#ddd; width:200px;font-family:arial;font-size:10pt;letter-spacing:0;"></div>
+    <div style="float:left;">
+      <p>Full text:</p>
+      <div id="containterA" style="background:#cdf; width:320px;font-family:arial;font-size:16px;letter-spacing:0;"></div>
+    </div>
     
-    <p>Ellipsised:</p>
-    <div id="containterB" style="background:#ddd; width:200px;font-family:arial;font-size:10pt;letter-spacing:0;"></div>
+    <div style="float:left;" id="conteinerB">
+      <p>Ellipsised width 320px, 5 rows:</p>
+      
+    </div>
+    <div style="float:left;" id="conteinerC">
+      <p>Ellipsised width 450px, 3 rows:</p>
+      
+    </div>
     
   </body>
 </html>
