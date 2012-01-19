@@ -22,34 +22,47 @@
     - solve unicode chars widths in better way
     - if even first word dont fits - cut the word
     - add local storage for cache if avail
-    - words with dash wraps to next line, here it is not
 */
 
 
 function FastEllipsis(cssStyle) {
   var _charWidthArray = {},
-      _cssStyle = (!!cssStyle) ? cssStyle : "font-family: arial; font-size: 12pt; letter-spacing: 0;",
-      _maxWidth = 0;
+      _cssStyle = (!!cssStyle) ? cssStyle : "font-family: arial; font-size: 12pt",
+      _maxWidth = 0,
+      
+      testDrive = 0;
 			
   // Generate cache for width of all ASCII chars 
   var generateASCIIwidth = function() {
-    var container, obj, character;
+    var container, charWrapper, obj, character,
+        totalWidth = 0, oldTotalWidth = 0, charWidth = 0;
 				
     // Temporary container for generated ASCII chars
-    container = $("<div id='charWidthContainer' style='visibility:hidden; "+_cssStyle+"'></div>").appendTo("body");
-				
+    container = $("<div style='width:6000px; visibility:hidden;'></div>").appendTo("body");
+		charWrapper = $("<span style='"+_cssStyle+"'></span>").appendTo(container);
+    
+    // DUMMY chars
+    charWrapper.append("f");
+    testDrive = $("<span>i</span>");
+    testDrive.appendTo(charWrapper);
+    totalWidth = charWrapper.width();
+    
     // Space char
-    obj = $("<span>&nbsp;</span>");
-    obj.appendTo(container);
-    _charWidthArray["_ "] = obj.width();
+    testDrive.before("&nbsp;");
+    oldTotalWidth = totalWidth;
+    totalWidth = charWrapper.width();
+    charWidth = totalWidth - oldTotalWidth;
+    _charWidthArray["_ "] = charWidth;
             
     // Other ASCII chars
     for( var i = 33; i <= 126; i++ ) {
       character = String.fromCharCode( i );
-      obj = $("<span>" + character + "</span> ");
-      obj.appendTo(container);
-					
-      _charWidthArray["_"+character] = obj.width();
+      testDrive.before(character);
+      
+      oldTotalWidth = totalWidth;
+      totalWidth = charWrapper.width();
+      charWidth = totalWidth - oldTotalWidth;
+        _charWidthArray["_"+character] = charWidth;
           
       // Finds max width for char - it will be given for every undefined char like: Ą or Ć
       if (_maxWidth < _charWidthArray["_"+character]) {
@@ -60,7 +73,7 @@ function FastEllipsis(cssStyle) {
     // Remove temporary container   
     container.remove();
   },
-			
+  
   // Get the width of specified char
   getCharWidth = function (myChar) {
         
@@ -79,7 +92,9 @@ function FastEllipsis(cssStyle) {
 			
   // Get the width of the word
   getWordWidth = function(myWord) {
-        
+    
+    myWord = myWord.trim();
+    
     // Check if this word is already cached
     if (!!_charWidthArray["_"+myWord]) {
       return _charWidthArray["_"+myWord];
@@ -101,7 +116,7 @@ function FastEllipsis(cssStyle) {
   ellipseIt = function(myString, maxLine, lineWidth) {
     var lineNo = 1,
         wordsInLineWidth = 0,
-        wordArr = myString.trim().strip_tags().split(/\s+/g), // trim string, remove HTML tags, remove space duplicates
+        wordArr = myString.trim().strip_tags().replace("-", "- ").split(/\s+/g), // trim string, remove HTML tags, remove space duplicates, detect dash word breaking
         spaceWidth = getCharWidth(" "),
         threeDotsWidth = getWordWidth("...");
 
@@ -124,7 +139,7 @@ function FastEllipsis(cssStyle) {
 
         // When you reached the end of maxLine parameter break the loop and return the result
         else if (lineNo > maxLine) {
-          return wordArr.slice(0, i).join(" ") + "...";
+          return wordArr.slice(0, i).join(" ").replace("- ", "-") + "..."; // replace to reverse dash word breaking
         }
 
         // If the words width was bigger than line width go back in the loop to take last word for use in the beggining of next line
