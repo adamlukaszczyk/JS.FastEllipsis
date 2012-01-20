@@ -51,19 +51,19 @@ function FastEllipsis(cssStyle) {
     testDrive.before("&nbsp;");
     oldTotalWidth = totalWidth;
     totalWidth = charWrapper.width();
-    charWidth = totalWidth - oldTotalWidth;
+    charWidth = (totalWidth - oldTotalWidth)+0.4; // hack: add 0.4px to every space 
     _charWidthArray["_ "] = charWidth;
             
     // Other ASCII chars
     for( var i = 33; i <= 126; i++ ) {
       character = String.fromCharCode( i );
-      testDrive.before(character);
+      testDrive.before(""+character+character);
       
       oldTotalWidth = totalWidth;
       totalWidth = charWrapper.width();
-      charWidth = totalWidth - oldTotalWidth;
-        _charWidthArray["_"+character] = charWidth;
-          
+      charWidth = (totalWidth - oldTotalWidth)/2; // While cache is generating add two the same chars at once, and then divide per 2 to get better kerning accuracy.
+      _charWidthArray["_"+character] = charWidth;
+        
       // Finds max width for char - it will be given for every undefined char like: Ą or Ć
       if (_maxWidth < _charWidthArray["_"+character]) {
         _maxWidth = _charWidthArray["_"+character];
@@ -106,6 +106,7 @@ function FastEllipsis(cssStyle) {
       for (var i = 0, len = myWord.length; i < len; i++) {
         sum = sum + getCharWidth(myWord[i]);
       }
+	  sum = Math.floor(sum);
       _charWidthArray["_"+myWord] = sum;
       return sum;
     }
