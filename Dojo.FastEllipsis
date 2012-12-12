@@ -1,0 +1,161 @@
+//The Dojo 1.7 compatible version of Dobiatowski's Fast Ellipsis Algorithm that originially used JQuery
+
+//Modified by Computerion (Daniel Hu)
+
+/*
+  var myEllipsis = new FastEllipsis("font-family: arial; font-size: 10pt; letter-spacing: 0;", "...", "Read More", "color: #1e839d");
+	var longText = "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum";
+	var ellipsed = myEllipsis.ellipseIt(
+		longText, // string to ellipsis
+		2, // maxline number
+		200 // width of container
+	);
+	dom.byId("someId").innerHTML = ellipsed;
+*/
+
+require(["dojo", "dojo/dom", "dojo/dom-class", "dojo/dom-style", "dojo/dom-construct", "dojo/_base/window"],
+
+	function(dojo, dom, domClass, domStyle, domConstruct, win){
+		
+		function FastEllipsis(cssStyle, myEllipsis, endPoint, endPointStyle) { //endPoint is a span tag at the end of your ellipsis (useful it you wanted to put a Read More anchor with a different style defined by endPointStyle for example). If you don't need it just set it to an empty string
+
+				var _charWidthArray = {},
+				_cssStyle = (!!cssStyle) ? cssStyle : "font-family: arial; font-size: 12pt",
+				_maxWidth = 0,
+				endPointDom = "<span class='manyEyesEllipsisHandlerReadMore' style='"+endPointStyle+"'>" + endPoint + "</span>",
+				testDrive = 0;
+				
+				var endPointWidth = 0;
+				
+				var generateASCIIwidth = function() {
+				var container, charWrapper, obj, character,
+				totalWidth = 0, oldTotalWidth = 0, charWidth = 0;
+				
+				container = domConstruct.create("div", {style: "width:6000px; visibility:hidden;"}, win.body());
+				charWrapper = domConstruct.create("span", {style: _cssStyle}, container);
+				charWrapper.innerHTML = endPointDom;
+				endPointWidth = charWrapper.offsetWidth;
+				dojo.empty(charWrapper);
+				
+				charWrapper.innerHTML += "f";
+				testDrive = domConstruct.create("span", {innerHTML: "i"});
+				domConstruct.place(testDrive, charWrapper);
+				totalWidth = charWrapper.offsetWidth;
+				
+				
+				charWrapper.innerHTML = "&nbsp;" + charWrapper.innerHTML;
+				oldTotalWidth = totalWidth;
+				totalWidth = charWrapper.offsetWidth;
+				charWidth = (totalWidth - oldTotalWidth);
+				_charWidthArray["_ "] = charWidth;
+
+				for( var i = 33; i <= 126; i++ ) {
+					character = String.fromCharCode( i );
+					charWrapper.innerHTML += ""+character+character;
+					
+					oldTotalWidth = totalWidth;
+					totalWidth = charWrapper.offsetWidth;
+					charWidth = (totalWidth - oldTotalWidth)/2;
+					_charWidthArray["_"+character] = charWidth;
+
+					if (_maxWidth < _charWidthArray["_"+character]) {
+						_maxWidth = _charWidthArray["_"+character];
+					}
+				}
+
+				domConstruct.destroy(container);
+				},
+
+				getCharWidth = function (myChar) {
+
+				if (!!_charWidthArray["_"+myChar]) {
+				return _charWidthArray["_"+myChar];
+				}
+
+				else {
+				_charWidthArray["_"+myChar] = _maxWidth;
+				return _maxWidth;
+				}
+				
+				},
+
+				getWordWidth = function(myWord) {
+				
+					myWord = myWord.trim();
+
+					if (!!_charWidthArray["_"+myWord]) {
+						return _charWidthArray["_"+myWord];
+					}
+					
+					else {
+						var sum = 0;
+						for (var i = 0, len = myWord.length; i < len; i++) {
+							sum = sum + getCharWidth(myWord[i]);
+						}
+							sum = Math.floor(sum);
+							_charWidthArray["_"+myWord] = sum;
+						return sum;
+					}
+				
+				},
+				
+				ellipseIt = function(myString, maxLine, lineWidth) {
+					
+					var lineNo = 1,
+					wordsInLineWidth = 0,
+					wordArr = myString.trim().strip_tags().replace("-", "- ").split(/\s+/g),
+					spaceWidth = getCharWidth(" ");
+					threeDotsWidth = getWordWidth(myEllipsis) + spaceWidth + endPointWidth;
+
+					var sum = 0;
+						for (var i = 0, len = myEllipsis.length; i < len; i++) {
+							sum = sum + getCharWidth(myEllipsis[i]);
+						}
+					
+					for (var i = 0, len = wordArr.length; i < len; i++) {
+						wordsInLineWidth += getWordWidth(wordArr[i]);
+						if (wordsInLineWidth > lineWidth) {
+							lineNo++;
+							wordsInLineWidth = 0;
+		
+							if (lineNo == maxLine) {
+								lineWidth -= threeDotsWidth;
+							}
+
+							else if (lineNo > maxLine) {
+								return wordArr.slice(0, i).join(" ").replace("- ", "-") + myEllipsis + " " + endPointDom;
+							}
+
+						i--;
+						}
+						else {
+							wordsInLineWidth += spaceWidth;
+						}
+					}
+					
+				return myString;
+					
+				};
+				
+				generateASCIIwidth();
+
+				return {
+					getCharWidth: getCharWidth,
+					getWordWidth: getWordWidth,
+					ellipseIt: ellipseIt
+				}
+			}
+			
+			if (typeof String.prototype.trim !== "function") {
+					String.prototype.trim = function () {
+					return this.replace(/^\s*/, "").replace(/\s*$/, "");
+				};
+			};
+				
+			if (typeof String.prototype.strip_tags !== "function") {
+					String.prototype.strip_tags = function() {
+					return this.replace(/<\/?[^>]+(>|$)/g, "");
+				};
+			};
+		
+});
