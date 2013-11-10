@@ -16,28 +16,36 @@
  );
  $("#containter").html(ellipsed);
 
- jQuery extension usage:
+ jQuery extension usage, the only parameter is number of lines:
 
- var myEllipsis = new FastEllipsis("font-family: arial; font-size: 10pt; letter-spacing: 0;");
- $("#containter").FastEllipsis(myEllipsis, 2);
+ $("#containter").FastEllipsis(2);
 
  or you can use any selector:
 
- $(".info").FastEllipsis(myEllipsis, 2);
- $("td").FastEllipsis(myEllipsis, 2);
+ $(".info").FastEllipsis(2);
+ $("td").FastEllipsis(2);
 
  TODO:
  - support entities
  - solve unicode chars widths in better way
  - if even first word dont fits - cut the word
- - add local storage for cache if avail
  */
 
+//Extend storage
+Storage.prototype.setObject = function (key, value) {
+    this.setItem(key, JSON.stringify(value));
+};
+
+Storage.prototype.getObject = function (key) {
+    var value = this.getItem(key);
+    return value && JSON.parse(value);
+};
+
 //Extend jQuery for easier usage
-$.fn.extend({FastEllipsis: function (ellipsis, maxLine) {
+$.fn.extend({FastEllipsis: function (maxLine) {
     var myString = this.text();
-    var lineWidth = this.width();
-    this.html(ellipsis.ellipseIt(myString, maxLine, lineWidth));
+    var lineWidth = parseFloat(this.get(0).style.width);
+    this.html(new FastEllipsis(this).ellipseIt(myString, maxLine, lineWidth));
 }});
 
 //Checks if parameter is DOM element
@@ -48,19 +56,23 @@ function isElement(obj) {
 function FastEllipsis(cssStyle) {
     //can provide DOM element as parameter and take the style from that
     if (isElement(cssStyle)) {
-        var element = $(cssStyle);
-        cssStyle = ["font-family: " + element.css('font-family').replace(/'/g, "") , "font-size: " + element.css('font-size') , "font-weight: " + element.css('font-weight')].join(';');
+        var element = (cssStyle.get) ? cssStyle.get(0) : cssStyle;
+        cssStyle = ["font-family: " + element.style.fontFamily.replace(/'/g, "") , "font-size: " + element.style.fontSize, "font-weight: " + element.style.fontWeight].join('; ');
     }
 
-    var _charWidthArray = {},
-        _cssStyle = (!!cssStyle) ? cssStyle : "font-family: arial; font-size: 12pt",
-        _maxWidth = 0,
-
+    var _cssStyle = (!!cssStyle) ? cssStyle : "font-family: arial; font-size: 12pt";
+    //try to take the cached widths from localStorage
+    var _charWidthArray = localStorage.getObject(_cssStyle) || {};
+    var _maxWidth = _charWidthArray["maxWidth"] || 0,
         testDrive = 0;
 
     // Generate cache for width of all ASCII chars
     var generateASCIIwidth = function () {
-            var container, charWrapper, obj, character,
+            //check if the object was taken from localStorage
+            if (_charWidthArray["maxWidth"]) {
+                return;
+            }
+            var container, charWrapper, character,
                 totalWidth = 0, oldTotalWidth = 0, charWidth = 0;
 
             // Temporary container for generated ASCII chars
@@ -95,7 +107,9 @@ function FastEllipsis(cssStyle) {
                     _maxWidth = _charWidthArray["_" + character];
                 }
             }
-
+            //save in localStorage
+            _charWidthArray["maxWidth"] = _maxWidth;
+            localStorage.setObject(_cssStyle, _charWidthArray);
             // Remove temporary container
             container.remove();
         },
