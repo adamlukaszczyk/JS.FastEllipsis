@@ -43,9 +43,11 @@ Storage.prototype.getObject = function (key) {
 
 //Extend jQuery for easier usage
 $.fn.extend({FastEllipsis: function (maxLine) {
-    var myString = this.text();
-    var lineWidth = parseFloat(this.get(0).style.width);
-    this.html(new FastEllipsis(this).ellipseIt(myString, maxLine, lineWidth));
+    this.each(function (index, el) {
+        var myString = el.innerHTML;
+        var lineWidth = parseFloat(el.style.width) || $(el).width();
+        el.innerHTML = new FastEllipsis(el).ellipseIt(myString, maxLine, lineWidth);
+    });
 }});
 
 //Checks if parameter is DOM element
