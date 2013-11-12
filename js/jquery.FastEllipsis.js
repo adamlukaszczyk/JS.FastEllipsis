@@ -122,11 +122,6 @@ function FastEllipsis(cssStyle) {
         
     for (var i = 0, len = wordArr.length; i < len; i++) {
 
-
-      if (len == 1) {
-        return ellipseWord(wordArr[i], lineWidth)
-      };
-      
       // Adding widths of words in the loop
       wordsInLineWidth += getWordWidth(wordArr[i]);
 
