@@ -118,9 +118,8 @@ function FastEllipsis(cssStyle) {
     var lineNo = 1,
         wordsInLineWidth = 0,
         wordArr = myString.trim().strip_tags().replace("-", "- ").split(/\s+/g), // trim string, remove HTML tags, remove space duplicates, detect dash word breaking
-        spaceWidth = getCharWidth(" "),
-        threeDotsWidth = getWordWidth("...");
-
+        spaceWidth = getCharWidth(" ");
+        
     for (var i = 0, len = wordArr.length; i < len; i++) {
 
       // Adding widths of words in the loop
@@ -140,6 +139,10 @@ function FastEllipsis(cssStyle) {
 
         // When you reached the end of maxLine parameter break the loop and return the result
         else if (lineNo > maxLine) {
+          // If even the first word doesn't fit in, truncate it
+          if (i == 0) {
+            return ellipseWord(wordArr[i], lineWidth)
+          };
           return wordArr.slice(0, i).join(" ").replace("- ", "-") + "..."; // replace to reverse dash word breaking
         }
 
@@ -155,7 +158,20 @@ function FastEllipsis(cssStyle) {
     // If there was no need to ellipsis
     return myString;
         
-  };
+  },
+  ellipseWord = function (myString, lineWidth) {
+      if (getWordWidth(myString) < lineWidth) { return myString; }
+      var width = 0;
+      lineWidth -= threeDotsWidth;
+      for (var i = 0, len = myString.length; i < len; i++) {
+          width += getCharWidth(myString[i]);
+          if (width > lineWidth) {
+              return myString.substring(0, i) + "...";
+          }
+      }
+      return myString;
+  },
+  threeDotsWidth = getWordWidth("...");
   
   generateASCIIwidth();
   
