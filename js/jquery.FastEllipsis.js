@@ -117,7 +117,7 @@ function FastEllipsis(cssStyle) {
   ellipseIt = function(myString, maxLine, lineWidth) {
     var lineNo = 1,
         wordsInLineWidth = 0,
-        wordArr = myString.trim().strip_tags().replace("-", "- ").split(/\s+/g), // trim string, remove HTML tags, remove space duplicates, detect dash word breaking
+        wordArr = myString.trim().strip_tags().replace(/-/g, "- ").split(/\s+/g), // trim string, remove HTML tags, remove space duplicates, detect dash word breaking
         spaceWidth = getCharWidth(" "),
         threeDotsWidth = getWordWidth("...");
 
@@ -140,7 +140,7 @@ function FastEllipsis(cssStyle) {
 
         // When you reached the end of maxLine parameter break the loop and return the result
         else if (lineNo > maxLine) {
-          return wordArr.slice(0, i).join(" ").replace("- ", "-") + "..."; // replace to reverse dash word breaking
+          return wordArr.slice(0, i).join(" ").replace(/-\s/g, "-") + "..."; // replace to reverse dash word breaking
         }
 
         // If the words width was bigger than line width go back in the loop to take last word for use in the beggining of next line
